@@ -45,5 +45,13 @@
 }
 
 .ship {
+  background-color: green;
+}
+
+.hit {
   background-color: red;
+}
+
+.miss {
+  background-color: yellow;
 }

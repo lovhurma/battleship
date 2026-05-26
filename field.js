@@ -12,6 +12,14 @@ function createCell(element) {
 
     div.classList.add('cell')
 
+    if (element === computerField) {
+      div.classList.add('computer-cell')
+    }
+
+    if (element === playerField) {
+      div.classList.add('player-cell')
+    }
+
     element.append(div)
   }
 }
