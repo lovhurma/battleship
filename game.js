@@ -1,6 +1,8 @@
-import { playerContainer, computerContainer, createMatrix, EMPTY, SHIP } from "./matrix.js";
+import { playerContainer, computerContainer, createMatrix, EMPTY, SHIP, playerState, computerState } from "./matrix.js";
 import { computerField, startBtn, finishBtn} from "./dom.js"
 import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS} from "./utils.js"
+
+export let gameStart = false
 
 let turn = 'player'
 let playerShipsLeft = 20
@@ -40,10 +42,8 @@ function computerShoot () {
     if (playerShipsLeft === 0) {
       finishedGame()
     } else {
-    turn = 'player'
-    setTimeout(() => {
-      addStatus('Ваш ход')
-    }, 1000)
+    addStatus('Противник попал! Подождите, его ход.')
+    setTimeout(computerShoot, 3000)
   }}
   if (coordinate === EMPTY) {
     playerContainer[row][col] = MISS
@@ -69,40 +69,59 @@ function playerShoot (row, col) {
     if (computerShipsLeft === 0) {
       finishedGame()
     } else {
-    turn = 'computer'
-    addStatus('Ход компьютера')
-    setTimeout(computerShoot, 5000)}
+    addStatus('Вы попали! Продолжайте')}
   }
   if (coordinate === EMPTY) {
     computerContainer[row][col] = MISS
     paintCellComp (row, col, MISS)
     turn = 'computer'
     addStatus('Ход компьютера')
-    setTimeout(computerShoot, 5000)
+    setTimeout(computerShoot, 3000)
   }
 }
 
 function startedGame () {
   finishBtn.disabled = false
+
+  gameStart = true
+
   playerContainer.length = 0
   computerContainer.length = 0
+
   createMatrix(playerContainer)
   createMatrix(computerContainer)
+
+  resetState(playerState)
+  resetState(computerState)
+
   turn = 'player'
   playerShipsLeft = 20
   computerShipsLeft = 20
+
   removeStyleState()
 }
 
-function finishedGame (element) {
+function finishedGame () {
   addStatus(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
   startBtn.textContent = 'Начать новую игру'
+
   startBtn.disabled = false
   finishBtn.disabled = true
+
+  gameStart = false
   
 }
 
+function resetState(state) {
+  state.ships = [4,3,3,2,2,2,1,1,1,1]
+  state.shipsContainer = []
+  state.currentShipSize = 4
+  state.currentShipCells = []
+  state.direction = null
+}
+
 computerField.addEventListener('click', (e) => {
+  if (playerState.shipsContainer.length !== 10) return
   const row = +e.target.dataset.row
   const col = +e.target.dataset.col
 

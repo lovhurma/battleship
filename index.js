@@ -1,6 +1,5 @@
 import './field.js'
 import './matrix.js'
 import './dom.js'
-import './player.js'
 import './game.js'
 import './utils.js'

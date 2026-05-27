@@ -1,5 +1,6 @@
 import { playerField } from "./dom.js"
 import { paintShip, addStatus } from "./utils.js"
+import { gameStart } from "./game.js"
 
 export const playerContainer = []
 export const computerContainer = []
@@ -20,28 +21,27 @@ createMatrix(computerContainer)
 export const EMPTY = 0
 export const SHIP = 1
 
-const playerState = {
+export const playerState = {
   container: playerContainer,
   ships: [4,3,3,2,2,2,1,1,1,1],
   shipsContainer: [],
   currentShipSize: 4,
   currentShipCells: [],
   direction: null,
-  cellClass: 'player-cell'
+  showShips: true
 }
 
-const computerState = {
+export const computerState = {
   container: computerContainer,
   ships: [4,3,3,2,2,2,1,1,1,1],
   shipsContainer: [],
   currentShipSize: 4,
   currentShipCells: [],
   direction: null,
-  cellClass: 'computer-cell'
+  showShips: false
 }
 
 function checkValidationCell (row, col, state) {
-
   if( state.container[row][col] !== EMPTY) {
       return false
   }
@@ -88,11 +88,15 @@ function checkValidationCell (row, col, state) {
 function addShipCell (row, col, state) {
   state.currentShipCells.push([+row, +col])
   state.container[row][col] = SHIP
-  paintShip(row, col, state.cellClass)
+  if (state.showShips) {
+    paintShip(row, col)
+  }
 }
 
 // Получаю координаты клика игрока
 playerField.addEventListener('click', (e) => {
+  if (!gameStart) return
+  if (playerState.ships.length === 0) return
   const row = +e.target.dataset.row
   const col = +e.target.dataset.col
   if (isNaN(row) || isNaN(col)) return
@@ -144,10 +148,19 @@ for (let i = 0; i < computerState.ships.length; i++) {
 
     attempts++
 
-    if (attempts > 2000) {
-      break
-    }
+  if (attempts > 2000) {
+
+    computerState.currentShipCells.forEach(([row, col]) => {
+      computerState.container[row][col] = EMPTY
+    })
+
+    computerState.currentShipCells = []
+
+    i--
+
+    break
   }
+}
 
   computerState.shipsContainer.push([
     ...computerState.currentShipCells
