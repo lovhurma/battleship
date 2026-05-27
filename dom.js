@@ -13,3 +13,6 @@ export const computerField = computer.querySelector('.computer__field')
 // Контейнеры для названия полей
 export const wordsContainer = document.querySelectorAll('.words')
 export const numbersContainer = document.querySelectorAll('.numbers')
+
+export const startBtn = document.querySelector('.start__button')
+export const finishBtn = document.querySelector('.finish__button')

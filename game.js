@@ -1,10 +1,12 @@
-import { playerContainer, computerContainer, EMPTY, SHIP } from "./matrix.js";
+import { playerContainer, computerContainer, createMatrix, EMPTY, SHIP } from "./matrix.js";
 import { computerField} from "./dom.js"
 
 const HIT = 2
 const MISS = 3
 
 let turn = 'player'
+let playerShipsLeft = 20
+let computerShipsLeft = 20
 
 function paintCellComp (row, col, state) {
   const cell = document.querySelector(
@@ -50,9 +52,13 @@ function computerShoot () {
   const coordinate = playerContainer[row][col]
   if (coordinate === SHIP) {
     playerContainer[row][col] = HIT
+    playerShipsLeft--
     paintCellPlayer (row, col, HIT)
+    if (playerShipsLeft === 0) {
+      finishedGame()
+    } else {
     turn = 'player'
-  }
+  }}
   if (coordinate === EMPTY) {
     playerContainer[row][col] = MISS
     paintCellPlayer (row, col, MISS)
@@ -69,9 +75,13 @@ function playerShoot (row, col) {
   const coordinate = computerContainer[row][col]
   if (coordinate === SHIP) {
     computerContainer[row][col] = HIT
+    computerShipsLeft--
     paintCellComp (row, col, HIT)
+    if (computerShipsLeft === 0) {
+      finishedGame()
+    } else {
     turn = 'computer'
-    setTimeout(computerShoot, 5000)
+    setTimeout(computerShoot, 5000)}
   }
   if (coordinate === EMPTY) {
     computerContainer[row][col] = MISS
@@ -79,6 +89,21 @@ function playerShoot (row, col) {
     turn = 'computer'
     setTimeout(computerShoot, 5000)
   }
+}
+
+function finishedGame () {
+  alert(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
+
+  playerContainer.length = 0
+  computerContainer.length = 0
+  createMatrix(playerContainer)
+  createMatrix(computerContainer)
+
+  turn = 'player'
+  playerShipsLeft = 20
+  computerShipsLeft = 20
+
+  
 }
 
 computerField.addEventListener('click', (e) => {
