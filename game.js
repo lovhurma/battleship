@@ -1,40 +1,23 @@
 import { playerContainer, computerContainer, createMatrix, EMPTY, SHIP } from "./matrix.js";
-import { computerField} from "./dom.js"
-
-const HIT = 2
-const MISS = 3
+import { computerField, startBtn, finishBtn} from "./dom.js"
+import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS} from "./utils.js"
 
 let turn = 'player'
 let playerShipsLeft = 20
 let computerShipsLeft = 20
 
-function paintCellComp (row, col, state) {
-  const cell = document.querySelector(
-    `.computer-cell[data-row="${row}"][data-col="${col}"]`
-  )
+startBtn.addEventListener('click', () => {
+  startBtn.disabled = true
+  startedGame()
+  addStatus('Заполните своё поле')
+})
 
-  if (state === HIT) {
-    cell.classList.remove('ship')//зеленый
-    cell.classList.add('hit') //красный
-  }
-  if (state === MISS) {
-    cell.classList.add('miss') //желтый
-  }
-}
+finishBtn.addEventListener('click', () => {
+  startBtn.disabled = false
+  startedGame()
+  addStatus('')
 
-function paintCellPlayer (row, col, state) {
-  const cell = document.querySelector(
-    `.player-cell[data-row="${row}"][data-col="${col}"]`
-  )
-
-  if (state === HIT) {
-    cell.classList.remove('ship')//зеленый
-    cell.classList.add('hit') //красный
-  }
-  if (state === MISS) {
-    cell.classList.add('miss') //желтый
-  }
-}
+})
 
 function computerShoot () {
   if (turn === 'player') return
@@ -58,11 +41,17 @@ function computerShoot () {
       finishedGame()
     } else {
     turn = 'player'
+    setTimeout(() => {
+      addStatus('Ваш ход')
+    }, 1000)
   }}
   if (coordinate === EMPTY) {
     playerContainer[row][col] = MISS
     paintCellPlayer (row, col, MISS)
     turn = 'player'
+    setTimeout(() => {
+      addStatus('Ваш ход')
+    }, 1000)
   }
 }
 
@@ -81,28 +70,35 @@ function playerShoot (row, col) {
       finishedGame()
     } else {
     turn = 'computer'
+    addStatus('Ход компьютера')
     setTimeout(computerShoot, 5000)}
   }
   if (coordinate === EMPTY) {
     computerContainer[row][col] = MISS
     paintCellComp (row, col, MISS)
     turn = 'computer'
+    addStatus('Ход компьютера')
     setTimeout(computerShoot, 5000)
   }
 }
 
-function finishedGame () {
-  alert(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
-
+function startedGame () {
+  finishBtn.disabled = false
   playerContainer.length = 0
   computerContainer.length = 0
   createMatrix(playerContainer)
   createMatrix(computerContainer)
-
   turn = 'player'
   playerShipsLeft = 20
   computerShipsLeft = 20
+  removeStyleState()
+}
 
+function finishedGame (element) {
+  addStatus(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
+  startBtn.textContent = 'Начать новую игру'
+  startBtn.disabled = false
+  finishBtn.disabled = true
   
 }
 

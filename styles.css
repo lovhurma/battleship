@@ -1,6 +1,7 @@
 .main {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .battleship__container {
@@ -47,7 +48,6 @@
   display: flex;
   gap: 30px;
   align-items: center;
-  align-self: center;
 }
 
 .heading__button {

@@ -1,4 +1,5 @@
 import { playerField } from "./dom.js"
+import { paintShip, addStatus } from "./utils.js"
 
 export const playerContainer = []
 export const computerContainer = []
@@ -50,7 +51,6 @@ function checkValidationCell (row, col, state) {
       if (row === i && col === j) continue
       let ship = state.shipsContainer.some(ship => ship.some(coord => coord[0] === i && coord[1] === j))
       if (ship) {
-        console.log('НЕЛЬЗЯ НАЖИМАТЬ')
         return false
       }
     }
@@ -105,20 +105,22 @@ playerField.addEventListener('click', (e) => {
     playerState.shipsContainer.push([...playerState.currentShipCells])
     playerState.currentShipCells = []
   }
+
+  if (playerState.ships.length === 0) {
+    playerFinishedFields()
+  }
     })
+
+  function playerFinishedFields () {
+    addStatus('Подождите, противник расставляет корабли...')
+
+    setTimeout(addComputerFiled, 5000)
+  }
 
 
 //_______________КОМПЬЮТЕР___________________________
 
-function paintShip(row, col, selector) {
-  const cell = document.querySelector(
-    `.${selector}[data-row="${row}"][data-col="${col}"]`
-  )
-
-  if (cell) {
-    cell.classList.add('ship')
-  } 
-}
+export function addComputerFiled () {
 
 for (let i = 0; i < computerState.ships.length; i++) {
 
@@ -150,4 +152,6 @@ for (let i = 0; i < computerState.ships.length; i++) {
   computerState.shipsContainer.push([
     ...computerState.currentShipCells
   ])
+}
+  addStatus('Игра началась. Ваш ход')
 }
