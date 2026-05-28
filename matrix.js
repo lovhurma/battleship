@@ -57,12 +57,12 @@ function checkValidationCell (row, col, state) {
   }
   //проверяю вторую клетку, чтобы она стояла рядом и задаю направление
   if (state.currentShipCells.length === 1) { 
-    const nextRow = state.currentShipCells[0][0]
-    const nextCol = state.currentShipCells[0][1]
-    if ((row === nextRow - 1 || row === nextRow + 1 ) && col === nextCol) {
+    const prevRow = state.currentShipCells[0][0]
+    const prevCol = state.currentShipCells[0][1]
+    if ((row === prevRow - 1 || row === prevRow + 1 ) && col === prevCol) {
       state.direction = 'vertical'
       return true
-    } else if ((col === nextCol - 1 || col === nextCol + 1 ) && row === nextRow) {
+    } else if ((col === prevCol - 1 || col === prevCol + 1 ) && row === prevRow) {
       state.direction = 'horizontal'
       return true
     } else {

@@ -28,11 +28,11 @@ export function paintCellPlayer (row, col, state) {
   )
 
   if (state === HIT) {
-    cell.classList.remove('ship')//зеленый
-    cell.classList.add('hit') //красный
+    cell.classList.remove('ship')
+    cell.classList.add('hit') 
   }
   if (state === MISS) {
-    cell.classList.add('miss') //желтый
+    cell.classList.add('miss') 
   }
 }
 
@@ -42,11 +42,11 @@ export function paintCellComp (row, col, state) {
   )
 
   if (state === HIT) {
-    cell.classList.remove('ship')//зеленый
-    cell.classList.add('hit') //красный
+    cell.classList.remove('ship')
+    cell.classList.add('hit') 
   }
   if (state === MISS) {
-    cell.classList.add('miss') //желтый
+    cell.classList.add('miss') 
   }
 }
 

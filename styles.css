@@ -90,7 +90,6 @@ h1, h2, .game-status, .words {
 }
 
 .ship {
-  /* background-color: green; */
   background-image: url('./public/ship-in-sea_128x128.svg');
   background-size: cover;
   background-position: center;
@@ -98,7 +97,6 @@ h1, h2, .game-status, .words {
 }
 
 .hit {
-  /* background-color: red; */
   background-image: url('./public/sinking-ship_128x128.svg');
   background-size: cover;
   background-position: center;
@@ -106,7 +104,6 @@ h1, h2, .game-status, .words {
 }
 
 .miss {
-  /* background-color: yellow; */
   background-image: url('./public/cross_128x128.svg');
   background-size: cover;
   background-position: center;
