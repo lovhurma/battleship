@@ -16,5 +16,6 @@ export const numbersContainer = document.querySelectorAll('.numbers')
 
 export const startBtn = document.querySelector('.start__button')
 export const finishBtn = document.querySelector('.finish__button')
+export const saveBtn = document.querySelector('.save__button')
 
 export const gameStatus = document.querySelector('.game-status')

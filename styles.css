@@ -84,6 +84,11 @@ h1, h2, .game-status, .words {
   color: white;
 }
 
+.save__button {
+  background: #ffd966;
+  color: white;
+}
+
 .words {
   display: flex;
   justify-content:space-around;

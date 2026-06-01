@@ -1,19 +1,196 @@
-import { playerContainer, computerContainer, createMatrix, EMPTY, SHIP, playerState, computerState } from "./matrix.js";
-import { computerField, startBtn, finishBtn} from "./dom.js"
-import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS} from "./utils.js"
+import { computerField,playerField, startBtn, finishBtn, saveBtn} from "./dom.js"
+import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip} from "./utils.js"
 
 export let gameStart = false
+let gameState = null
+
+export let playerContainer = []
+export let computerContainer = []
+
+export const playerState = {
+  container: playerContainer,
+  ships: [4,3,3,2,2,2,1,1,1,1],
+  shipsContainer: [],
+  currentShipSize: 4,
+  currentShipCells: [],
+  direction: null,
+  showShips: true
+}
+
+export const computerState = {
+  container: computerContainer,
+  ships: [4,3,3,2,2,2,1,1,1,1],
+  shipsContainer: [],
+  currentShipSize: 4,
+  currentShipCells: [],
+  direction: null,
+  showShips: false
+}
 
 let turn = 'player'
 let playerShipsLeft = 20
 let computerShipsLeft = 20
 
+export const EMPTY = 0
+export const SHIP = 1
+
+
+//СОЗДАНИЕ МАТРИЦЫ
+export function createMatrix(player) {
+  for (let i = 0; i < 10; i++) {
+    player[i] = []
+
+    for (let j = 0; j < 10; j++) {
+      player[i][j] = 0
+    }
+  }
+}
+
+createMatrix(playerContainer)
+createMatrix(computerContainer)
+
+if (localStorage.getItem('playerContainer')) {
+  console.log('Работает?')
+continueGame()
+}
+
+//ВАЛИДАЦИЯ
+function checkValidationCell (row, col, state) {
+  if( state.container[row][col] !== EMPTY) {
+      return false
+  }
+  for (let i = row -1; i <= row + 1; i++) {
+    for (let j = col - 1; j <= col + 1; j++) {
+      if (i < 0 || i > 9 || j < 0 || j > 9) continue
+      if (row === i && col === j) continue
+      let ship = state.shipsContainer.some(ship => ship.some(coord => coord[0] === i && coord[1] === j))
+      if (ship) {
+        return false
+      }
+    }
+  }
+  //проверяю вторую клетку, чтобы она стояла рядом и задаю направление
+  if (state.currentShipCells.length === 1) { 
+    const prevRow = state.currentShipCells[0][0]
+    const prevCol = state.currentShipCells[0][1]
+    if ((row === prevRow - 1 || row === prevRow + 1 ) && col === prevCol) {
+      state.direction = 'vertical'
+      return true
+    } else if ((col === prevCol - 1 || col === prevCol + 1 ) && row === prevRow) {
+      state.direction = 'horizontal'
+      return true
+    } else {
+      return false
+    }}
+  //Проверяю что последующие клетки идут рядом и в одном направлении
+  if (state.currentShipCells.length >= 2) {
+    const lastCell = state.currentShipCells[state.currentShipCells.length - 1]
+    if (state.direction === 'vertical' 
+      && (lastCell[0] + 1 === row || lastCell[0] - 1 === row ) 
+      && lastCell[1] === col ) {
+      return true
+    } else if (state.direction === 'horizontal'  
+      && (lastCell[1] + 1 === col || lastCell[1] - 1 === col ) && lastCell[0] === row) {
+      return true
+    } else {
+      return false
+    }
+  }
+  return true
+}
+//ДОБАВЛЕНИЕ КОРАБЛЯ
+function addShipCell (row, col, state) {
+  state.currentShipCells.push([+row, +col])
+  state.container[row][col] = SHIP
+  if (state.showShips) {
+    paintShip(row, col)
+  }
+}
+
+// Получаю координаты клика игрока
+playerField.addEventListener('click', (e) => {
+  if (!gameStart) return
+  if (playerState.ships.length === 0) return
+  const row = +e.target.dataset.row
+  const col = +e.target.dataset.col
+  if (isNaN(row) || isNaN(col)) return
+  if (!checkValidationCell(row, col, playerState)) return
+  addShipCell(row, col, playerState)
+  if (playerState.currentShipSize === playerState.currentShipCells.length) {
+    playerState.direction = null
+    playerState.ships.shift()
+    playerState.currentShipSize = playerState.ships[0]
+    playerState.shipsContainer.push([...playerState.currentShipCells])
+    playerState.currentShipCells = []
+  }
+
+  if (playerState.ships.length === 0) {
+    playerFinishedFields()
+  }
+    })
+
+  function playerFinishedFields () {
+    addStatus('Подождите, противник расставляет корабли...')
+
+    setTimeout(addComputerFiled, 5000)
+  }
+
+
+//_______________КОМПЬЮТЕР___________________________
+
+export function addComputerFiled () {
+
+for (let i = 0; i < computerState.ships.length; i++) {
+
+  computerState.currentShipSize = computerState.ships[i]
+  computerState.currentShipCells = []
+  computerState.direction = null
+
+  let attempts = 0
+
+  while (
+    computerState.currentShipCells.length <
+    computerState.currentShipSize
+  ) {
+
+    const row = Math.floor(Math.random() * 10)
+    const col = Math.floor(Math.random() * 10)
+
+    if (checkValidationCell(row, col, computerState)) {
+      addShipCell(row, col, computerState)
+    }
+
+    attempts++
+
+  if (attempts > 2000) {
+
+    computerState.currentShipCells.forEach(([row, col]) => {
+      computerState.container[row][col] = EMPTY
+    })
+
+    computerState.currentShipCells = []
+
+    i--
+
+    break
+  }
+}
+
+  computerState.shipsContainer.push([
+    ...computerState.currentShipCells
+  ])
+}
+  addStatus('Игра началась. Ваш ход')
+}
+
+//СТАРТ ИГРЫ
 startBtn.addEventListener('click', () => {
   startBtn.disabled = true
   startedGame()
   addStatus('Заполните своё поле')
 })
 
+//ФИНИШ ИГРЫ
 finishBtn.addEventListener('click', () => {
   startBtn.disabled = false
   startedGame()
@@ -21,6 +198,7 @@ finishBtn.addEventListener('click', () => {
 
 })
 
+//ВЫСТРЕЛ КОМПЬЮТЕРА
 function computerShoot () {
   if (turn === 'player') return
   let row 
@@ -55,6 +233,7 @@ function computerShoot () {
   }
 }
 
+//ВЫСТРЕЛ ИГРОКА
 function playerShoot (row, col) {
   if (turn === 'computer') return
   if (
@@ -80,6 +259,7 @@ function playerShoot (row, col) {
   }
 }
 
+//ФУНКЦИЯ ЗАПУСКА ИГРЫ
 function startedGame () {
   finishBtn.disabled = false
 
@@ -87,6 +267,8 @@ function startedGame () {
 
   playerContainer.length = 0
   computerContainer.length = 0
+
+  localStorage.clear()
 
   createMatrix(playerContainer)
   createMatrix(computerContainer)
@@ -101,6 +283,7 @@ function startedGame () {
   removeStyleState()
 }
 
+//ФУНКЦИЯ ФИНИША ИГРЫ
 function finishedGame () {
   addStatus(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
   startBtn.textContent = 'Начать новую игру'
@@ -109,9 +292,12 @@ function finishedGame () {
   finishBtn.disabled = true
 
   gameStart = false
+
+    localStorage.clear()
   
 }
 
+//СБРОС СОСТОЯНИЯ ИГРЫ
 function resetState(state) {
   state.ships = [4,3,3,2,2,2,1,1,1,1]
   state.shipsContainer = []
@@ -120,10 +306,69 @@ function resetState(state) {
   state.direction = null
 }
 
+//КЛИКИ ПО ПОЛЮ КОМПЬЮТЕРА ИГРОКОМ
 computerField.addEventListener('click', (e) => {
   if (playerState.shipsContainer.length !== 10) return
   const row = +e.target.dataset.row
   const col = +e.target.dataset.col
 
   playerShoot(row, col)
+})
+
+//______________________СОХРАНЕНИЕ В LOCALSTORAGE___________________________
+
+function continueGame () {
+  gameState = {
+  savedPlayerContainer : JSON.parse(localStorage.getItem('playerContainer')),
+  savedComputerContainer : JSON.parse(localStorage.getItem('computerContainer')),
+  savedTurn : localStorage.getItem('turn'),
+  savedPlayerShipsLeft : +localStorage.getItem('playerShipsLeft'),
+  savedComputerShipsLeft : +localStorage.getItem('computerShipsLeft')
+  }
+  console.log(gameState)
+
+  turn = gameState.savedTurn
+  playerShipsLeft = gameState.savedPlayerShipsLeft
+  computerShipsLeft = gameState.savedComputerShipsLeft
+
+  computerContainer = gameState.savedComputerContainer
+  
+  for (let i = 0; i < computerContainer.length; i++) {
+    for (let j = 0; j < computerContainer.length; j++ ) {
+      const state = computerContainer[i][j]
+      if (state === 2 || state === 3) {
+        paintCellComp(i, j, state)
+      }
+    }
+  }
+}
+  
+  playerContainer = gameState.savedPlayerContainer
+
+  for (let i = 0; i < playerContainer.length; i++) {
+    for (let j = 0; j < playerContainer.length; j++ ) {
+      const state = playerContainer[i][j]
+      if (state === 1) {
+        paintShip(i, j)
+      }
+
+      if (state === 2 || state === 3) {
+        paintCellPlayer(i, j, state)
+      }
+    }
+  }
+
+saveBtn.addEventListener('click', () => {
+  saveBtn.disabled = true
+  startBtn.disabled = false
+  gameStart = false
+  addStatus('Вы поставили игру на паузу')
+  localStorage.setItem('playerContainer', JSON.stringify(playerContainer))
+  localStorage.setItem('computerContainer', JSON.stringify(computerContainer))
+  localStorage.setItem('playerState', JSON.stringify(playerState))
+  localStorage.setItem('computerState', JSON.stringify(computerState))
+  localStorage.setItem('turn', turn)
+  localStorage.setItem('playerShipsLeft', playerShipsLeft)
+  localStorage.setItem('computerShipsLeft', computerShipsLeft)
+
 })
