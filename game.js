@@ -7,6 +7,9 @@ let gameState = null
 export let playerContainer = []
 export let computerContainer = []
 
+console.log(playerContainer)
+console.log(computerContainer)
+
 export const playerState = {
   container: playerContainer,
   ships: [4,3,3,2,2,2,1,1,1,1],
@@ -50,8 +53,7 @@ createMatrix(playerContainer)
 createMatrix(computerContainer)
 
 if (localStorage.getItem('playerContainer')) {
-  console.log('Работает?')
-continueGame()
+  continueGame()
 }
 
 //ВАЛИДАЦИЯ
@@ -200,6 +202,7 @@ finishBtn.addEventListener('click', () => {
 
 //ВЫСТРЕЛ КОМПЬЮТЕРА
 function computerShoot () {
+  if (!gameStart) return
   if (turn === 'player') return
   let row 
   let col 
@@ -235,6 +238,7 @@ function computerShoot () {
 
 //ВЫСТРЕЛ ИГРОКА
 function playerShoot (row, col) {
+  if (!gameStart) return
   if (turn === 'computer') return
   if (
   computerContainer[row][col] === HIT ||
@@ -321,17 +325,37 @@ function continueGame () {
   gameState = {
   savedPlayerContainer : JSON.parse(localStorage.getItem('playerContainer')),
   savedComputerContainer : JSON.parse(localStorage.getItem('computerContainer')),
+  savedPlayerState: JSON.parse(localStorage.getItem('playerState')),
+  savedComputerState: JSON.parse(localStorage.getItem('computerState')),
   savedTurn : localStorage.getItem('turn'),
   savedPlayerShipsLeft : +localStorage.getItem('playerShipsLeft'),
-  savedComputerShipsLeft : +localStorage.getItem('computerShipsLeft')
+  savedComputerShipsLeft : +localStorage.getItem('computerShipsLeft'),
+  stateStatus: localStorage.getItem('stateStatus'),
+  statusBtn: localStorage.getItem('statusBtn')
   }
-  console.log(gameState)
+  saveBtn.textContent = gameState.statusBtn
 
   turn = gameState.savedTurn
   playerShipsLeft = gameState.savedPlayerShipsLeft
   computerShipsLeft = gameState.savedComputerShipsLeft
 
-  computerContainer = gameState.savedComputerContainer
+  playerState.ships = gameState.savedPlayerState.ships
+  playerState.shipsContainer = gameState.savedPlayerState.shipsContainer
+  playerState.currentShipSize = gameState.savedPlayerState.currentShipSize
+  playerState.currentShipCells = gameState.savedPlayerState.currentShipCells
+  playerState.direction = gameState.savedPlayerState.direction
+
+  computerState.ships = gameState.savedComputerState.ships
+  computerState.shipsContainer = gameState.savedComputerState.shipsContainer
+  computerState.currentShipSize = gameState.savedComputerState.currentShipSize
+  computerState.currentShipCells = gameState.savedComputerState.currentShipCells
+  computerState.direction = gameState.savedComputerState.direction
+
+  playerContainer.length = 0
+  computerContainer.length = 0
+
+  playerContainer.push(...gameState.savedPlayerContainer)
+  computerContainer.push(...gameState.savedComputerContainer)
   
   for (let i = 0; i < computerContainer.length; i++) {
     for (let j = 0; j < computerContainer.length; j++ ) {
@@ -341,11 +365,8 @@ function continueGame () {
       }
     }
   }
-}
-  
-  playerContainer = gameState.savedPlayerContainer
 
-  for (let i = 0; i < playerContainer.length; i++) {
+    for (let i = 0; i < playerContainer.length; i++) {
     for (let j = 0; j < playerContainer.length; j++ ) {
       const state = playerContainer[i][j]
       if (state === 1) {
@@ -357,9 +378,14 @@ function continueGame () {
       }
     }
   }
+}
 
-saveBtn.addEventListener('click', () => {
-  saveBtn.disabled = true
+
+
+saveBtn.addEventListener('click', (e) => {
+  let nameBtn = e.target.textContent
+  if (nameBtn === 'Сохранить игру') {
+  saveBtn.textContent = 'Продолжить игру'
   startBtn.disabled = false
   gameStart = false
   addStatus('Вы поставили игру на паузу')
@@ -370,5 +396,18 @@ saveBtn.addEventListener('click', () => {
   localStorage.setItem('turn', turn)
   localStorage.setItem('playerShipsLeft', playerShipsLeft)
   localStorage.setItem('computerShipsLeft', computerShipsLeft)
-
+  localStorage.setItem('stateStatus', 'Игра на паузе' )
+  localStorage.setItem('statusBtn', 'Продолжить игру')
+  } 
+  
+  if (nameBtn === 'Продолжить игру') {
+    gameStart = true
+    saveBtn.textContent = 'Сохранить игру'
+    if (turn === 'player') {
+      addStatus('Ваш ход')
+    } else {
+      addStatus('Ход компьютера')
+      setTimeout(computerShoot, 3000)
+    }
+  }
 })
