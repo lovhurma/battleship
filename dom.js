@@ -10,6 +10,10 @@ export const computer = document.querySelector('.computer')
 // Контейнер для поля компьютера
 export const computerField = computer.querySelector('.computer__field')
 
+//Контейнер для кораблей
+
+export const shipsContainer = document.querySelector('.ships__container')
+
 // Контейнеры для названия полей
 export const wordsContainer = document.querySelectorAll('.words')
 export const numbersContainer = document.querySelectorAll('.numbers')

@@ -1,4 +1,4 @@
-import { computerField,playerField, startBtn, finishBtn, saveBtn} from "./dom.js"
+import { computerField,playerField, startBtn, finishBtn, saveBtn, shipsContainer} from "./dom.js"
 import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip} from "./utils.js"
 
 export let gameStart = false
@@ -6,9 +6,6 @@ let gameState = null
 
 export let playerContainer = []
 export let computerContainer = []
-
-console.log(playerContainer)
-console.log(computerContainer)
 
 export const playerState = {
   container: playerContainer,
@@ -108,6 +105,26 @@ function addShipCell (row, col, state) {
     paintShip(row, col)
   }
 }
+
+function createShips () {
+  //Полчаю размеры клетки поля, чтобы они совпадали с размером палубы корабля
+  const cell = document.querySelector('.player-cell')
+  const deckSize = cell.offsetWidth
+  for (let i = 0; i < playerState.ships.length; i++) {
+    const ship = document.createElement('div')
+    let shipLength = playerState.ships[i]
+    ship.classList.add(`ship-${shipLength}`, 'ship')
+    for (let j = 0; j < shipLength; j++) {
+      const deck = document.createElement('div')
+      deck.classList.add('deck')
+      deck.style.width = `${deckSize}px`
+      deck.style.height = `${deckSize}px`
+      ship.append(deck)
+    } 
+    shipsContainer.append(ship)
+  }
+}
+createShips()
 
 // Получаю координаты клика игрока
 playerField.addEventListener('click', (e) => {

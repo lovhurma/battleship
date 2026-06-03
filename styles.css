@@ -94,11 +94,22 @@ h1, h2, .game-status, .words {
   justify-content:space-around;
 }
 
+.ships__container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .ship {
-  background-image: url('./public/ship-in-sea_128x128.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  display: flex;
+  gap: 2px;
+}
+
+.deck {
+  background-color: #ffd966;
+  border: 1px solid #b8860b;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .hit {
