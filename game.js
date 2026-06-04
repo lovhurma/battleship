@@ -155,24 +155,41 @@ shipsContainer.addEventListener('mousedown', (e) => {
 
   const shipCoord = ship.getBoundingClientRect()
   const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
+  const allowedCells = document.querySelectorAll('.shadow-allowed')
+  allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
 
   if (el && el.classList.contains('player-cell')) {
+    //строю корабль
     const startRow = +el.dataset.row
     const startCol = +el.dataset.col
     const elemLength = +ship.dataset.length
     const cellsShip = []
 
+    //Проверка выхода за поле
+    const outField = cellsShip.some(([row, col]) => 
+      row > 9 || row < 0 || col > 9 || col < 0
+    )
+
     for (let i = 0; i < elemLength; i++) {
       cellsShip.push([startRow, startCol + i])
     }
+    // //Проверка выхода за поле
+    // const outField = cellsShip.some(([row, col]) => 
+    //   row > 9 || row < 0 || col > 9 || col < 0
+    // )
 
-    cellsShip.forEach(([row,col]) => {
+    if (outField) {
+        return
+    } else {
+      cellsShip.forEach(([row,col]) => {
       const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`)
       if (cell) {
         cell.classList.add('shadow-allowed')
+      }})
+    }
+
       }
-    })
-      }}
+    }
 
   document.addEventListener('mousemove', onMouseMove)
 
