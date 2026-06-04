@@ -126,6 +126,53 @@ function createShips () {
 }
 createShips()
 
+//_____________________drag&drop______________________
+shipsContainer.addEventListener('mousedown', (e) => {
+  let ship = e.target.closest('.ship')
+  if (!ship) return
+//clientX/Y - координаты клика относительно окна браузера
+//getBoundingClientRect - координаты элемента
+//Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
+  let shiftX = e.clientX - ship.getBoundingClientRect().left
+  let shiftY = e.clientY - ship.getBoundingClientRect().top
+
+  ship.style.position = 'absolute'
+  ship.style.zIndex = 1000
+
+  ship.style.pointerEvents = 'none'
+
+  moveAt(e.pageX, e.pageY)
+
+  function moveAt (pageX, pageY) {
+    //pageX, pageY КУДА БЫЛ КЛИК МЫШИ НА СТРАНИЦЕ
+    ship.style.left = pageX - shiftX + 'px'
+    ship.style.top = pageY - shiftY + 'px'
+  }
+
+  function onMouseMove (e) {
+  moveAt(e.pageX, e.pageY)
+  
+  const el = document.elementFromPoint(e.clientX, e.clientY)
+
+  if (el && el.classList.contains('player-cell')) {
+    console.log('Над клеткой:', el.dataset.row, el.dataset.col)
+      } else {
+      console.log('Не выполняется')
+    }}
+
+  document.addEventListener('mousemove', onMouseMove)
+
+  document.onmouseup = function () {
+    document.removeEventListener('mousemove', onMouseMove)
+    ship.style.pointerEvents = 'auto'
+    ship.onmouseup = null
+  }
+
+  ship.ondragstart = function () {
+    return false
+  }
+})
+
 // Получаю координаты клика игрока
 playerField.addEventListener('click', (e) => {
   if (!gameStart) return
