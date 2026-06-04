@@ -114,6 +114,7 @@ function createShips () {
     const ship = document.createElement('div')
     let shipLength = playerState.ships[i]
     ship.classList.add(`ship-${shipLength}`, 'ship')
+    ship.dataset.length = shipLength
     for (let j = 0; j < shipLength; j++) {
       const deck = document.createElement('div')
       deck.classList.add('deck')
@@ -151,14 +152,27 @@ shipsContainer.addEventListener('mousedown', (e) => {
 
   function onMouseMove (e) {
   moveAt(e.pageX, e.pageY)
-  
-  const el = document.elementFromPoint(e.clientX, e.clientY)
+
+  const shipCoord = ship.getBoundingClientRect()
+  const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
 
   if (el && el.classList.contains('player-cell')) {
-    console.log('Над клеткой:', el.dataset.row, el.dataset.col)
-      } else {
-      console.log('Не выполняется')
-    }}
+    const startRow = +el.dataset.row
+    const startCol = +el.dataset.col
+    const elemLength = +ship.dataset.length
+    const cellsShip = []
+
+    for (let i = 0; i < elemLength; i++) {
+      cellsShip.push([startRow, startCol + i])
+    }
+
+    cellsShip.forEach(([row,col]) => {
+      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`)
+      if (cell) {
+        cell.classList.add('shadow-allowed')
+      }
+    })
+      }}
 
   document.addEventListener('mousemove', onMouseMove)
 
