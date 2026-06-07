@@ -128,9 +128,15 @@ function createShips () {
 createShips()
 
 //_____________________drag&drop______________________
+
 shipsContainer.addEventListener('mousedown', (e) => {
   let ship = e.target.closest('.ship')
   if (!ship) return
+  const startShipLeft = ship.offsetLeft
+  const startShipTop = ship.offsetTop
+  console.log(startShipLeft, startShipTop)
+  let cellsShip = []
+  let outField = false
 //clientX/Y - координаты клика относительно окна браузера
 //getBoundingClientRect - координаты элемента
 //Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
@@ -158,25 +164,22 @@ shipsContainer.addEventListener('mousedown', (e) => {
   const allowedCells = document.querySelectorAll('.shadow-allowed')
   allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
 
+  cellsShip = []
+  outField = true
+
   if (el && el.classList.contains('player-cell')) {
     //строю корабль
     const startRow = +el.dataset.row
     const startCol = +el.dataset.col
     const elemLength = +ship.dataset.length
-    const cellsShip = []
-
-    //Проверка выхода за поле
-    const outField = cellsShip.some(([row, col]) => 
-      row > 9 || row < 0 || col > 9 || col < 0
-    )
 
     for (let i = 0; i < elemLength; i++) {
       cellsShip.push([startRow, startCol + i])
     }
-    // //Проверка выхода за поле
-    // const outField = cellsShip.some(([row, col]) => 
-    //   row > 9 || row < 0 || col > 9 || col < 0
-    // )
+    //Проверка выхода за поле
+      outField = cellsShip.some(([row, col]) => 
+      row > 9 || row < 0 || col > 9 || col < 0
+    )
 
     if (outField) {
         return
@@ -194,6 +197,28 @@ shipsContainer.addEventListener('mousedown', (e) => {
   document.addEventListener('mousemove', onMouseMove)
 
   document.onmouseup = function () {
+    //Проверка что контейнер пуст
+    const isShip= cellsShip.some(([row, col]) => 
+      playerContainer[row][col] === SHIP
+    )
+    if(outField || isShip) {
+      ship.style.left = startShipLeft + 'px'
+      ship.style.top = startShipTop + 'px'
+    } else {
+      cellsShip.forEach(([row, col]) => {
+    playerContainer[row][col] = SHIP
+      
+    const cell = document.querySelector(
+      `[data-row="${row}"][data-col="${col}"]`
+    )
+    
+    cell.classList.add('ship-cell')
+    
+  })
+  ship.remove()
+    }
+
+
     document.removeEventListener('mousemove', onMouseMove)
     ship.style.pointerEvents = 'auto'
     ship.onmouseup = null
@@ -204,33 +229,33 @@ shipsContainer.addEventListener('mousedown', (e) => {
   }
 })
 
-// Получаю координаты клика игрока
-playerField.addEventListener('click', (e) => {
-  if (!gameStart) return
-  if (playerState.ships.length === 0) return
-  const row = +e.target.dataset.row
-  const col = +e.target.dataset.col
-  if (isNaN(row) || isNaN(col)) return
-  if (!checkValidationCell(row, col, playerState)) return
-  addShipCell(row, col, playerState)
-  if (playerState.currentShipSize === playerState.currentShipCells.length) {
-    playerState.direction = null
-    playerState.ships.shift()
-    playerState.currentShipSize = playerState.ships[0]
-    playerState.shipsContainer.push([...playerState.currentShipCells])
-    playerState.currentShipCells = []
-  }
+// // Получаю координаты клика игрока
+// playerField.addEventListener('click', (e) => {
+//   if (!gameStart) return
+//   if (playerState.ships.length === 0) return
+//   const row = +e.target.dataset.row
+//   const col = +e.target.dataset.col
+//   if (isNaN(row) || isNaN(col)) return
+//   if (!checkValidationCell(row, col, playerState)) return
+//   addShipCell(row, col, playerState)
+//   if (playerState.currentShipSize === playerState.currentShipCells.length) {
+//     playerState.direction = null
+//     playerState.ships.shift()
+//     playerState.currentShipSize = playerState.ships[0]
+//     playerState.shipsContainer.push([...playerState.currentShipCells])
+//     playerState.currentShipCells = []
+//   }
 
-  if (playerState.ships.length === 0) {
-    playerFinishedFields()
-  }
-    })
+//   if (playerState.ships.length === 0) {
+//     playerFinishedFields()
+//   }
+//     })
 
-  function playerFinishedFields () {
-    addStatus('Подождите, противник расставляет корабли...')
+//   function playerFinishedFields () {
+//     addStatus('Подождите, противник расставляет корабли...')
 
-    setTimeout(addComputerFiled, 5000)
-  }
+//     setTimeout(addComputerFiled, 5000)
+//   }
 
 
 //_______________КОМПЬЮТЕР___________________________

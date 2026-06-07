@@ -112,6 +112,10 @@ h1, h2, .game-status, .words {
   box-sizing: border-box;
 }
 
+.cell.ship-cell {
+  background: #ffd966;
+}
+
 .hit {
   background-image: url('./public/sinking-ship_128x128.svg');
   background-size: cover;
