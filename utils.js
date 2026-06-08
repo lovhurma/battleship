@@ -9,16 +9,32 @@ export function paintShip(row, col) {
   )
 
   if (cell) {
-    cell.classList.add('ship')
+    cell.classList.add('ship-cell')
   } 
+}
+
+export function paintAllowed (ship) {
+  ship.forEach(([row,col]) => {
+  const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`)
+  if (cell) {
+    cell.classList.add('shadow-allowed')
+  }})
+}
+
+export function paintForbidden (ship) {
+  ship.forEach(([row,col]) => {
+  const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`)
+  if (cell) {
+    cell.classList.add('shadow-forbidden')
+  }})
 }
 
 export function removeStyleState() {
   computerField.querySelectorAll('.cell').forEach((cell) => {
-    cell.classList.remove('ship', 'miss', 'hit')
+    cell.classList.remove('ship-cell', 'miss', 'hit')
   })
   playerField.querySelectorAll('.cell').forEach((cell) => {
-    cell.classList.remove('ship', 'miss', 'hit')
+    cell.classList.remove('ship-cell', 'miss', 'hit')
   })
 }
 
@@ -28,7 +44,7 @@ export function paintCellPlayer (row, col, state) {
   )
 
   if (state === HIT) {
-    cell.classList.remove('ship')
+    cell.classList.remove('ship-cell')
     cell.classList.add('hit') 
   }
   if (state === MISS) {
@@ -42,7 +58,7 @@ export function paintCellComp (row, col, state) {
   )
 
   if (state === HIT) {
-    cell.classList.remove('ship')
+    cell.classList.remove('ship-cell')
     cell.classList.add('hit') 
   }
   if (state === MISS) {

@@ -1,5 +1,5 @@
 import { computerField,playerField, startBtn, finishBtn, saveBtn, shipsContainer} from "./dom.js"
-import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip} from "./utils.js"
+import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip, paintAllowed, paintForbidden} from "./utils.js"
 
 export let gameStart = false
 let gameState = null
@@ -53,7 +53,7 @@ if (localStorage.getItem('playerContainer')) {
   continueGame()
 }
 
-//ВАЛИДАЦИЯ
+//ВАЛИДАЦИЯ ДЛЯ КОМПЬЮЕТЕРА
 function checkValidationCell (row, col, state) {
   if( state.container[row][col] !== EMPTY) {
       return false
@@ -97,7 +97,7 @@ function checkValidationCell (row, col, state) {
   }
   return true
 }
-//ДОБАВЛЕНИЕ КОРАБЛЯ
+//ДОБАВЛЕНИЕ КОРАБЛЯ КОМПЬЮЕТРА
 function addShipCell (row, col, state) {
   state.currentShipCells.push([+row, +col])
   state.container[row][col] = SHIP
@@ -106,6 +106,17 @@ function addShipCell (row, col, state) {
   }
 }
 
+//ДОБАВЛЕНИЕ КОРАБЛЯ ИГРОКА
+function addShipCellPlayer (ship) {
+  playerState.shipsContainer.push([...ship])
+      ship.forEach(([row, col]) => {
+      playerState.container[row][col] = SHIP
+      
+      paintShip(row, col)
+      })
+}
+
+//Создание кораблей для перетаскивания
 function createShips () {
   //Полчаю размеры клетки поля, чтобы они совпадали с размером палубы корабля
   const cell = document.querySelector('.player-cell')
@@ -130,13 +141,11 @@ createShips()
 //_____________________drag&drop______________________
 
 shipsContainer.addEventListener('mousedown', (e) => {
+  if (!gameStart) return
   let ship = e.target.closest('.ship')
   if (!ship) return
-  const startShipLeft = ship.offsetLeft
-  const startShipTop = ship.offsetTop
-  console.log(startShipLeft, startShipTop)
   let cellsShip = []
-  let outField = false
+  let outField = true
 //clientX/Y - координаты клика относительно окна браузера
 //getBoundingClientRect - координаты элемента
 //Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
@@ -163,6 +172,8 @@ shipsContainer.addEventListener('mousedown', (e) => {
   const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
   const allowedCells = document.querySelectorAll('.shadow-allowed')
   allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
+  const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
+  forbiddenCells.forEach(element => element.classList.remove('shadow-forbidden'))
 
   cellsShip = []
   outField = true
@@ -181,44 +192,41 @@ shipsContainer.addEventListener('mousedown', (e) => {
       row > 9 || row < 0 || col > 9 || col < 0
     )
 
+    const isShip = isValid(cellsShip)
+    //если вне поля, выходим
     if (outField) {
-        return
-    } else {
-      cellsShip.forEach(([row,col]) => {
-      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`)
-      if (cell) {
-        cell.classList.add('shadow-allowed')
-      }})
-    }
+      return
+    } 
 
-      }
+    //если есть корабль, запрещенный свет
+    if (isShip) {
+      paintForbidden(cellsShip)
     }
+    //в отсальных случая можно подсвечивать зеленым
+      paintAllowed(cellsShip)
+    }
+      }
 
   document.addEventListener('mousemove', onMouseMove)
 
   document.onmouseup = function () {
-    //Проверка что контейнер пуст
-    const isShip= cellsShip.some(([row, col]) => 
-      playerContainer[row][col] === SHIP
-    )
+    //Проверка что клетки пустые и нет корабля
+    const isShip = isValid(cellsShip)
+    //если клетки не пустые или корабль вне поля
     if(outField || isShip) {
-      ship.style.left = startShipLeft + 'px'
-      ship.style.top = startShipTop + 'px'
+      ship.style.position = 'relative'
+      ship.style.left = ''
+      ship.style.top = ''
+      ship.style.zIndex = ''
+      shipsContainer.appendChild(ship)
     } else {
-      cellsShip.forEach(([row, col]) => {
-    playerContainer[row][col] = SHIP
-      
-    const cell = document.querySelector(
-      `[data-row="${row}"][data-col="${col}"]`
-    )
-    
-    cell.classList.add('ship-cell')
-    
-  })
-  ship.remove()
+      addShipCellPlayer(cellsShip)
+      playerState.ships.shift()
+      ship.remove()
+      if (playerState.ships.length === 0) {
+        playerFinishedFields()
+      }
     }
-
-
     document.removeEventListener('mousemove', onMouseMove)
     ship.style.pointerEvents = 'auto'
     ship.onmouseup = null
@@ -228,36 +236,22 @@ shipsContainer.addEventListener('mousedown', (e) => {
     return false
   }
 })
-
-// // Получаю координаты клика игрока
-// playerField.addEventListener('click', (e) => {
-//   if (!gameStart) return
-//   if (playerState.ships.length === 0) return
-//   const row = +e.target.dataset.row
-//   const col = +e.target.dataset.col
-//   if (isNaN(row) || isNaN(col)) return
-//   if (!checkValidationCell(row, col, playerState)) return
-//   addShipCell(row, col, playerState)
-//   if (playerState.currentShipSize === playerState.currentShipCells.length) {
-//     playerState.direction = null
-//     playerState.ships.shift()
-//     playerState.currentShipSize = playerState.ships[0]
-//     playerState.shipsContainer.push([...playerState.currentShipCells])
-//     playerState.currentShipCells = []
-//   }
-
-//   if (playerState.ships.length === 0) {
-//     playerFinishedFields()
-//   }
-//     })
-
-//   function playerFinishedFields () {
-//     addStatus('Подождите, противник расставляет корабли...')
-
-//     setTimeout(addComputerFiled, 5000)
-//   }
+  //Функция для валидации игрока
+  function isValid (cellsShip) {
+    for (const [row, col] of cellsShip){
+      for (let i = row -1; i <= row + 1; i++) {
+        for (let j = col - 1; j <= col + 1; j++) {
+          if (i < 0 || i > 9 || j < 0 || j > 9) continue
+          let ship = playerState.shipsContainer.some  (ship => ship.some(coord => coord[0] === i && coord[1] === j))
+            if (ship) {
+              return true
+            }
+        }}
+    }
+  }
 
 
+  
 //_______________КОМПЬЮТЕР___________________________
 
 export function addComputerFiled () {
@@ -308,6 +302,7 @@ for (let i = 0; i < computerState.ships.length; i++) {
 //СТАРТ ИГРЫ
 startBtn.addEventListener('click', () => {
   startBtn.disabled = true
+  saveBtn.disabled = false
   startedGame()
   addStatus('Заполните своё поле')
 })
@@ -315,8 +310,10 @@ startBtn.addEventListener('click', () => {
 //ФИНИШ ИГРЫ
 finishBtn.addEventListener('click', () => {
   startBtn.disabled = false
-  startedGame()
-  addStatus('')
+  finishBtn.disabled = true
+  saveBtn.disabled = true
+  gameStart = false
+  addStatus('Игра звершена! Чтобы начать заново, нажмите кнопку "Начать игру"')
 
 })
 
@@ -340,6 +337,7 @@ function computerShoot () {
     playerContainer[row][col] = HIT
     playerShipsLeft--
     paintCellPlayer (row, col, HIT)
+    finishShip (row, col, playerState)
     if (playerShipsLeft === 0) {
       finishedGame()
     } else {
@@ -369,6 +367,7 @@ function playerShoot (row, col) {
     computerContainer[row][col] = HIT
     computerShipsLeft--
     paintCellComp (row, col, HIT)
+    finishShip (row, col, computerState)
     if (computerShipsLeft === 0) {
       finishedGame()
     } else {
@@ -405,6 +404,7 @@ function startedGame () {
   computerShipsLeft = 20
 
   removeStyleState()
+  checkContainer(shipsContainer)
 }
 
 //ФУНКЦИЯ ФИНИША ИГРЫ
@@ -438,6 +438,8 @@ computerField.addEventListener('click', (e) => {
 
   playerShoot(row, col)
 })
+
+
 
 //______________________СОХРАНЕНИЕ В LOCALSTORAGE___________________________
 
@@ -531,3 +533,47 @@ saveBtn.addEventListener('click', (e) => {
     }
   }
 })
+
+
+function playerFinishedFields () {
+    addStatus('Подождите, противник расставляет корабли...')
+
+    setTimeout(addComputerFiled, 5000)
+}
+
+function checkContainer (container) {
+  const ships= container.querySelectorAll('.ship')
+
+  if (ships.length < 10) {
+    container.innerHTML = ''
+    createShips()
+  }
+}
+
+//Окрасить клетки вокруг пораженного корабля
+function finishShip (row, col, state) {
+const ship = state.shipsContainer.find(el=> el.some(([r,c]) => r === row && c === col))
+
+const isHit = ship.every(([r,c]) =>  state.container[r][c] === HIT)
+if ( isHit ) {
+
+  for (const [row, col] of ship){
+      for (let i = row -1; i <= row + 1; i++) {
+        for (let j = col - 1; j <= col + 1; j++) {
+          if (i < 0 || i > 9 || j < 0 || j > 9) continue
+          if (row === i && col === j) continue
+          if (ship.some(([row, col]) => row === i && col === j)) continue
+          state.container[i][j] = MISS
+          paintFinishCell (i, j, state)
+        }}
+    }
+}
+}
+
+function paintFinishCell (row, col, state) {
+  if (state === playerState) {
+    paintCellPlayer(row, col, MISS)
+  } else {
+    paintCellComp(row, col, MISS)
+  }
+}

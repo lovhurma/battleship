@@ -114,20 +114,36 @@ h1, h2, .game-status, .words {
 
 .cell.ship-cell {
   background: #ffd966;
+  border: 1px solid #b8860b;
+  border-radius: 4px;
 }
 
 .hit {
-  background-image: url('./public/sinking-ship_128x128.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: #d35400;
+  border-color: #ff3b30;
 }
 
+
 .miss {
-  background-image: url('./public/cross_128x128.svg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  position: relative;
+}
+
+.miss::after {
+  content: '';
+  position: absolute;
+
+  inset: 0;
+  margin: auto;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+  background: #bfefff;
+
+  box-shadow:
+    0 0 6px rgba(191, 239, 255, 0.8),
+    0 0 12px rgba(191, 239, 255, 0.4);
 }
 
 .shadow-allowed {
