@@ -18,6 +18,7 @@ html, body {
   margin: 0 auto;
   display: flex;
   gap: 50px;
+  user-select: none;
 }
 
 .field {
@@ -72,6 +73,11 @@ h1, h2, .game-status, .words {
 .heading__button {
   height: 50px;
   width: 150px;
+}
+
+.heading__button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .start__button {

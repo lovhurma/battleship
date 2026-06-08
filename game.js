@@ -210,6 +210,12 @@ shipsContainer.addEventListener('mousedown', (e) => {
   document.addEventListener('mousemove', onMouseMove)
 
   document.onmouseup = function () {
+    const allowedCells = document.querySelectorAll('.shadow-allowed')
+    allowedCells.forEach(cell => cell.classList.remove('shadow-allowed'))
+
+    const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
+    forbiddenCells.forEach(cell => cell.classList.remove('shadow-forbidden'))
+  
     //Проверка что клетки пустые и нет корабля
     const isShip = isValid(cellsShip)
     //если клетки не пустые или корабль вне поля
@@ -229,7 +235,7 @@ shipsContainer.addEventListener('mousedown', (e) => {
     }
     document.removeEventListener('mousemove', onMouseMove)
     ship.style.pointerEvents = 'auto'
-    ship.onmouseup = null
+    document.onmouseup = null
   }
 
   ship.ondragstart = function () {
@@ -409,6 +415,7 @@ function startedGame () {
 
 //ФУНКЦИЯ ФИНИША ИГРЫ
 function finishedGame () {
+  saveBtn.disabled = true
   addStatus(playerShipsLeft === 0 ? 'Победил компьютер!' : 'Вы победили!')
   startBtn.textContent = 'Начать новую игру'
 
@@ -455,6 +462,8 @@ function continueGame () {
   stateStatus: localStorage.getItem('stateStatus'),
   statusBtn: localStorage.getItem('statusBtn')
   }
+
+  addStatus(gameState.stateStatus)
   saveBtn.textContent = gameState.statusBtn
 
   turn = gameState.savedTurn
