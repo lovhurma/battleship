@@ -111,6 +111,10 @@ h1, h2, .game-status, .words {
   gap: 2px;
 }
 
+.ship.vertical {
+  flex-direction: column;
+}
+
 .deck {
   background-color: #ffd966;
   border: 1px solid #b8860b;

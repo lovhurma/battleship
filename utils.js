@@ -3,6 +3,17 @@ import { gameStatus, computerField, playerField } from "./dom.js"
 export const HIT = 2
 export const MISS = 3
 
+export function changeOrientation (element, orientation) {
+  if (!element) return
+  if (orientation === 'horizontal') {
+    element.classList.remove('vertical')
+    element.dataset.orientation = 'horizontal'
+  } else {
+    element.classList.add('vertical')
+    element.dataset.orientation = 'vertical'
+  }
+}
+
 export function paintShip(row, col) {
   const cell = document.querySelector(
     `.player-cell[data-row="${row}"][data-col="${col}"]`

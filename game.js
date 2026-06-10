@@ -1,5 +1,5 @@
 import { computerField,playerField, startBtn, finishBtn, saveBtn, shipsContainer} from "./dom.js"
-import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip, paintAllowed, paintForbidden} from "./utils.js"
+import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip, paintAllowed, paintForbidden, changeOrientation} from "./utils.js"
 
 export let gameStart = false
 let gameState = null
@@ -126,6 +126,7 @@ function createShips () {
     let shipLength = playerState.ships[i]
     ship.classList.add(`ship-${shipLength}`, 'ship')
     ship.dataset.length = shipLength
+    ship.dataset.orientation = 'horizontal'
     for (let j = 0; j < shipLength; j++) {
       const deck = document.createElement('div')
       deck.classList.add('deck')
@@ -144,8 +145,12 @@ shipsContainer.addEventListener('mousedown', (e) => {
   if (!gameStart) return
   let ship = e.target.closest('.ship')
   if (!ship) return
+  let orientation = ship.dataset.orientation
+  const elemLength = +ship.dataset.length
+  let currentCell = null
   let cellsShip = []
   let outField = true
+  // const elemLength = +ship.dataset.length
 //clientX/Y - координаты клика относительно окна браузера
 //getBoundingClientRect - координаты элемента
 //Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
@@ -165,49 +170,78 @@ shipsContainer.addEventListener('mousedown', (e) => {
     ship.style.top = pageY - shiftY + 'px'
   }
 
-  function onMouseMove (e) {
-  moveAt(e.pageX, e.pageY)
+  //Функция для отображения корабля вертикально или горизонтально
 
-  const shipCoord = ship.getBoundingClientRect()
-  const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
-  const allowedCells = document.querySelectorAll('.shadow-allowed')
-  allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
-  const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
-  forbiddenCells.forEach(element => element.classList.remove('shadow-forbidden'))
-
-  cellsShip = []
-  outField = true
-
-  if (el && el.classList.contains('player-cell')) {
-    //строю корабль
-    const startRow = +el.dataset.row
-    const startCol = +el.dataset.col
-    const elemLength = +ship.dataset.length
-
-    for (let i = 0; i < elemLength; i++) {
-      cellsShip.push([startRow, startCol + i])
+  function buildShip (currentCells, orientation, elLength) {
+    cellsShip = []
+    const [row, col] = currentCells
+    if (orientation === 'horizontal') {
+      for (let i = 0; i < elLength; i++) {
+      cellsShip.push([row, col + i])
     }
+  } else {
+      for (let i = 0; i < elLength; i++) {
+      cellsShip.push([row + i, col])}
+    }
+    changeOrientation (ship, orientation)
+    return cellsShip
+  }
+  //Функция обновления интерфейса и проверки доступности
+  function updatePreview () {
+    outField = true
     //Проверка выхода за поле
       outField = cellsShip.some(([row, col]) => 
-      row > 9 || row < 0 || col > 9 || col < 0
-    )
+      row > 9 || row < 0 || col > 9 || col < 0)
 
-    const isShip = isValid(cellsShip)
-    //если вне поля, выходим
-    if (outField) {
+      if (outField) {
       return
     } 
 
-    //если есть корабль, запрещенный свет
-    if (isShip) {
+      const isShip = isValid(cellsShip)
+
+      if (isShip) {
       paintForbidden(cellsShip)
     }
     //в отсальных случая можно подсвечивать зеленым
       paintAllowed(cellsShip)
     }
-      }
+  //Функция удаления окрашенных клеток
+  function updatePreviewAllowed () {
+    const allowedCells = document.querySelectorAll('.shadow-allowed')
+  allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
+  const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
+  forbiddenCells.forEach(element => element.classList.remove('shadow-forbidden'))
+  }
 
+  function onMouseMove (e) {
+  moveAt(e.pageX, e.pageY)
+  //координаты корабля на экране
+  const shipCoord = ship.getBoundingClientRect()
+  //над какой клеткой поля сейчас находится корабль
+  const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
+  updatePreviewAllowed ()
+
+  if (el && el.classList.contains('player-cell')) {
+    //строю корабль
+    const startRow = +el.dataset.row
+    const startCol = +el.dataset.col
+    currentCell = [startRow, startCol]
+    
+    cellsShip = buildShip (currentCell, orientation, elemLength)
+    updatePreview()
+  }
+    }
+  
+  function onOrientationChange (e) {
+    if (e.code !== 'Space') return
+    updatePreviewAllowed ()
+    orientation = orientation === 'horizontal' ? 'vertical' : 'horizontal'
+    buildShip (currentCell, orientation, elemLength)
+    updatePreview ()
+  }
+  
   document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('keydown', onOrientationChange)
 
   document.onmouseup = function () {
     const allowedCells = document.querySelectorAll('.shadow-allowed')
@@ -234,6 +268,7 @@ shipsContainer.addEventListener('mousedown', (e) => {
       }
     }
     document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('keydown', onOrientationChange)
     ship.style.pointerEvents = 'auto'
     document.onmouseup = null
   }
@@ -242,6 +277,7 @@ shipsContainer.addEventListener('mousedown', (e) => {
     return false
   }
 })
+
   //Функция для валидации игрока
   function isValid (cellsShip) {
     for (const [row, col] of cellsShip){
