@@ -145,6 +145,7 @@ shipsContainer.addEventListener('mousedown', (e) => {
   if (!gameStart) return
   let ship = e.target.closest('.ship')
   if (!ship) return
+  addStatus('Когда корабль на поле, вы можете поменять направление нажав пробел')
   let orientation = ship.dataset.orientation
   const elemLength = +ship.dataset.length
   let currentCell = null
@@ -208,9 +209,9 @@ shipsContainer.addEventListener('mousedown', (e) => {
   //Функция удаления окрашенных клеток
   function updatePreviewAllowed () {
     const allowedCells = document.querySelectorAll('.shadow-allowed')
-  allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
-  const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
-  forbiddenCells.forEach(element => element.classList.remove('shadow-forbidden'))
+    allowedCells.forEach(element => element.classList.remove('shadow-allowed'))
+    const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
+    forbiddenCells.forEach(element => element.classList.remove('shadow-forbidden'))
   }
 
   function onMouseMove (e) {
@@ -221,12 +222,16 @@ shipsContainer.addEventListener('mousedown', (e) => {
   const el = document.elementFromPoint(shipCoord.left, shipCoord.top)
   updatePreviewAllowed ()
 
+  if (!el || !el.classList.contains('player-cell')) {
+  currentCell = null
+  cellsShip = []
+}
+
   if (el && el.classList.contains('player-cell')) {
     //строю корабль
     const startRow = +el.dataset.row
     const startCol = +el.dataset.col
     currentCell = [startRow, startCol]
-    
     cellsShip = buildShip (currentCell, orientation, elemLength)
     updatePreview()
   }
@@ -234,6 +239,7 @@ shipsContainer.addEventListener('mousedown', (e) => {
   
   function onOrientationChange (e) {
     if (e.code !== 'Space') return
+    if (outField) return
     updatePreviewAllowed ()
     orientation = orientation === 'horizontal' ? 'vertical' : 'horizontal'
     buildShip (currentCell, orientation, elemLength)
@@ -244,16 +250,12 @@ shipsContainer.addEventListener('mousedown', (e) => {
   document.addEventListener('keydown', onOrientationChange)
 
   document.onmouseup = function () {
-    const allowedCells = document.querySelectorAll('.shadow-allowed')
-    allowedCells.forEach(cell => cell.classList.remove('shadow-allowed'))
-
-    const forbiddenCells = document.querySelectorAll('.shadow-forbidden')
-    forbiddenCells.forEach(cell => cell.classList.remove('shadow-forbidden'))
+    updatePreviewAllowed ()
   
     //Проверка что клетки пустые и нет корабля
     const isShip = isValid(cellsShip)
     //если клетки не пустые или корабль вне поля
-    if(outField || isShip) {
+    if(outField || isShip || !currentCell) {
       ship.style.position = 'relative'
       ship.style.left = ''
       ship.style.top = ''
