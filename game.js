@@ -141,17 +141,79 @@ createShips()
 
 //_____________________drag&drop______________________
 
-shipsContainer.addEventListener('mousedown', (e) => {
+document.addEventListener('mousedown', (e) => {
   if (!gameStart) return
-  let ship = e.target.closest('.ship')
+
+  let ship = null
+  let orientation = null
+  let elemLength = null
+  let outField = true
+  if (e.target.closest('.ships__container')) {
+    ship = e.target.closest('.ship')
+    orientation = ship.dataset.orientation
+    elemLength = +ship.dataset.length
+  }
+  if (e.target.closest('.player__field')) {
+    outField = false
+    const shipCell = e.target.closest('.ship-cell')
+
+    if (!shipCell) return
+    const row = +shipCell.dataset.row
+    const col = +shipCell.dataset.col
+    const shipCoord = playerState.shipsContainer.find(element => element.some(([r, c]) => 
+      r === row && c === col
+    ))
+    if (!shipCoord) return
+    const index = playerState.shipsContainer.findIndex(element => element.some(([r, c]) =>
+      r === row && c === col
+    ))
+    //[[1,2], [1,3], [1,4]]
+    for (const [row, col] of shipCoord) {
+      playerState.container[row][col] = EMPTY
+
+      const cell = document.querySelector(`.player-cell[data-row="${row}"][data-col="${col}"]`)
+      cell.classList.remove('ship-cell')
+      
+    }
+    playerState.shipsContainer.splice(index, 1)
+    elemLength = shipCoord.length
+    if (elemLength === 1) {
+      orientation = 'horizontal'
+    }
+    else if (shipCoord[0][0] === shipCoord[1][0]) {
+      orientation = 'horizontal'
+    } else {
+      orientation = 'vertical'
+    }
+    const cell = e.target
+    const deckSize = cell.offsetWidth
+    ship = document.createElement('div')
+    const rect = e.target.getBoundingClientRect()
+    ship.style.position = 'absolute'
+    ship.style.left = `${rect.left}px`
+    ship.style.top = `${rect.top}px`
+
+    ship.classList.add(`ship-${elemLength}`, 'ship')
+    ship.dataset.length = elemLength
+    ship.dataset.orientation = orientation
+    for (let i = 0; i < elemLength; i++) {
+      const deck = document.createElement('div')
+      deck.classList.add('deck')
+      deck.style.width = `${deckSize}px`
+      deck.style.height = `${deckSize}px`
+      ship.append(deck)
+    }
+    document.body.append(ship) 
+  } 
+
   if (!ship) return
+  
   addStatus('Когда корабль на поле, вы можете поменять направление нажав пробел')
-  let orientation = ship.dataset.orientation
-  const elemLength = +ship.dataset.length
+  // let orientation = ship.dataset.orientation
+  // const elemLength = +ship.dataset.length
   let currentCell = null
   let cellsShip = []
-  let outField = true
-  // const elemLength = +ship.dataset.length
+  // let outField = true
 //clientX/Y - координаты клика относительно окна браузера
 //getBoundingClientRect - координаты элемента
 //Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
