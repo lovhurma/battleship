@@ -1,4 +1,4 @@
-import { computerField,playerField, startBtn, finishBtn, saveBtn, shipsContainer} from "./dom.js"
+import { computerField, startBtn, finishBtn, saveBtn, shipsContainer} from "./dom.js"
 import {paintCellComp, paintCellPlayer, removeStyleState, addStatus, HIT, MISS, paintShip, paintAllowed, paintForbidden, changeOrientation} from "./utils.js"
 
 export let gameStart = false
@@ -167,7 +167,7 @@ document.addEventListener('mousedown', (e) => {
     const index = playerState.shipsContainer.findIndex(element => element.some(([r, c]) =>
       r === row && c === col
     ))
-    //[[1,2], [1,3], [1,4]]
+
     for (const [row, col] of shipCoord) {
       playerState.container[row][col] = EMPTY
 
@@ -203,17 +203,15 @@ document.addEventListener('mousedown', (e) => {
       deck.style.height = `${deckSize}px`
       ship.append(deck)
     }
-    document.body.append(ship) 
+    document.body.append(ship)
+    playerState.ships.push(shipCoord.length)
   } 
 
   if (!ship) return
   
   addStatus('Когда корабль на поле, вы можете поменять направление нажав пробел')
-  // let orientation = ship.dataset.orientation
-  // const elemLength = +ship.dataset.length
   let currentCell = null
   let cellsShip = []
-  // let outField = true
 //clientX/Y - координаты клика относительно окна браузера
 //getBoundingClientRect - координаты элемента
 //Вычисляю сдвиг чтобы корабль прилипал к курсору, т.е. насколько курсор "залез в корабль"
@@ -328,6 +326,7 @@ document.addEventListener('mousedown', (e) => {
       playerState.ships.shift()
       ship.remove()
       if (playerState.ships.length === 0) {
+        console.log('Закончились корабли')
         playerFinishedFields()
       }
     }
